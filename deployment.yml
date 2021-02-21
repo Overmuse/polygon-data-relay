@@ -10,20 +10,20 @@ data:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: trader-deployment
+  name: polygon-data-relay-deployment
 spec:
   selector:
     matchLabels:
-      app: trader
+      app: polygon-data-relay
   replicas: 1
   template:
     metadata:
       labels:
-        app: trader
+        app: polygon-data-relay
     spec:
       containers:
-      - name: trader
-        image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/trader:${IMAGE_TAG}
+      - name: polygon-data-relay
+        image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/polygon-data-relay:${IMAGE_TAG}
         env:
         - name: TICKERS
           value: "AAPL"
