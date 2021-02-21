@@ -1,11 +1,12 @@
 use anyhow::{Context, Result};
 use clap::{App, Arg};
 use dotenv::dotenv;
-use polygon_data_relay::{stream_to_kafka, Polygon};
-use sentry_anyhow::capture_anyhow;
+use polygon::ws::Connection;
+use polygon_data_relay::run;
 use std::env;
 
-fn main() -> Result<()> {
+#[tokio::main]
+async fn main() -> Result<()> {
     let _guard = sentry::init(sentry::ClientOptions::new());
     dotenv()?;
     env_logger::builder().format_timestamp_micros().init();
@@ -43,15 +44,14 @@ fn main() -> Result<()> {
     if matches.is_present("minute_aggregates") {
         data.push("AM".to_string());
     }
-    let polygon = Polygon::new(
+    let ws = Connection::new(
         env::var("POLYGON_KEY").context("Could not find POLYGON_KEY")?,
         data,
         tickers,
-    );
+    )
+    .connect()
+    .await?;
 
-    if let Err(e) = stream_to_kafka(polygon) {
-        capture_anyhow(&e);
-        return Err(e);
-    }
+    run(ws).await;
     Ok(())
 }
