@@ -14,7 +14,7 @@ env_logger = "0.7.1"
 log = "0.4"
 rdkafka = { version = "0.23", features = ["ssl-vendored"] }
 futures = "0.3"
-polygon = { version = "0.1", git = "ssh://git@github.com/Overmuse/polygon", branch = "SR/thiserror" }
+polygon = { version = "0.1", git = "ssh://git@github.com/Overmuse/polygon", branch = "main" }
 sentry = "0.19.0"
 sentry-anyhow = "0.19.0"
 serde = "1.0"
