@@ -1,5 +1,4 @@
 use anyhow::{Context, Result};
-use clap::{App, Arg};
 use dotenv::dotenv;
 use polygon::ws::Connection;
 use polygon_data_relay::run;
@@ -10,38 +9,23 @@ async fn main() -> Result<()> {
     let _guard = sentry::init(sentry::ClientOptions::new());
     dotenv()?;
     env_logger::builder().format_timestamp_micros().init();
-    let matches = App::new("Market Data Relay")
-        .version(option_env!("CARGO_PKG_VERSION").unwrap_or(""))
-        .about("Data relay from various sources to Kafka")
-        .arg(
-            Arg::with_name("tickers")
-                .short("t")
-                .long("tickers")
-                .required(true)
-                .min_values(1),
-        )
-        .arg(Arg::with_name("quotes").short("Q"))
-        .arg(Arg::with_name("trades").short("T"))
-        .arg(Arg::with_name("second_aggregates").short("S"))
-        .arg(Arg::with_name("minute_aggregates").short("M"))
-        .get_matches();
 
-    let tickers: Vec<String> = matches
-        .values_of("tickers")
-        .unwrap()
+    let tickers: Vec<String> = env::var("TICKERS")?
+        .split(",")
         .map(|x| x.to_string())
         .collect();
     let mut data: Vec<String> = vec![];
-    if matches.is_present("quotes") {
+
+    if let Ok(_) = env::var("QUOTES") {
         data.push("Q".to_string());
     }
-    if matches.is_present("trades") {
+    if let Ok(_) = env::var("TRADES") {
         data.push("T".to_string());
     }
-    if matches.is_present("second_aggregates") {
+    if let Ok(_) = env::var("SECOND_AGGREGATES") {
         data.push("A".to_string());
     }
-    if matches.is_present("minute_aggregates") {
+    if let Ok(_) = env::var("MINUTE_AGGREGATES") {
         data.push("AM".to_string());
     }
     let ws = Connection::new(
