@@ -11,21 +11,21 @@ async fn main() -> Result<()> {
     env_logger::builder().format_timestamp_micros().init();
 
     let tickers: Vec<String> = env::var("TICKERS")?
-        .split(",")
+        .split(',')
         .map(|x| x.to_string())
         .collect();
     let mut data: Vec<String> = vec![];
 
-    if let Ok(_) = env::var("QUOTES") {
+    if env::var("QUOTES").is_ok() {
         data.push("Q".to_string());
     }
-    if let Ok(_) = env::var("TRADES") {
+    if env::var("TRADES").is_ok() {
         data.push("T".to_string());
     }
-    if let Ok(_) = env::var("SECOND_AGGREGATES") {
+    if env::var("SECOND_AGGREGATES").is_ok() {
         data.push("A".to_string());
     }
-    if let Ok(_) = env::var("MINUTE_AGGREGATES") {
+    if env::var("MINUTE_AGGREGATES").is_ok() {
         data.push("AM".to_string());
     }
     let ws = Connection::new(
