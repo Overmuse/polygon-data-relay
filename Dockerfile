@@ -24,9 +24,8 @@ COPY --from=cacher /polygon-data-relay/target target
 COPY --from=cacher /usr/local/cargo /usr/local/cargo
 RUN --mount=type=ssh cargo build --release --bin polygon-data-relay
 
-FROM rust as runtime
+FROM debian:buster-slim as runtime
 WORKDIR polygon-data-relay
 COPY --from=builder /polygon-data-relay/target/release/polygon-data-relay /usr/local/bin
 ENV RUST_LOG=polygon-data-relay=debug
-RUN apt-get update && apt-get -y install ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/local/bin/polygon-data-relay"]

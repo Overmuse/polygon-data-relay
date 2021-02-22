@@ -975,7 +975,6 @@ version = "0.1.0"
 source = "git+ssh://git@github.com/Overmuse/polygon?branch=main#2061025efb3775f0ad7da4c2ce38e19ff3ea7b14"
 dependencies = [
  "futures",
- "reqwest",
  "serde",
  "serde_json",
  "serde_repr",
