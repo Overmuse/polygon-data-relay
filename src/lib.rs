@@ -8,8 +8,6 @@ use rdkafka::{
 use std::env;
 use tracing::{debug, error};
 
-pub mod telemetry;
-
 pub async fn run(ws: WebSocket) {
     let producer = kafka_producer().unwrap();
     ws.for_each(|messages| async {

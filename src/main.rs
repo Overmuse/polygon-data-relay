@@ -1,18 +1,20 @@
 use anyhow::{Context, Result};
 use dotenv::dotenv;
 use polygon::ws::Connection;
-use polygon_data_relay::{
-    run,
-    telemetry::{get_subscriber, init_subscriber},
-};
+use polygon_data_relay::run;
 use std::env;
-use tracing::{debug, info};
+use tracing::{debug, info, subscriber::set_global_default};
+use tracing_log::LogTracer;
+use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let _ = dotenv();
-    let subscriber = get_subscriber("trader".into(), "info".into());
-    init_subscriber(subscriber);
+    let subscriber = FmtSubscriber::builder()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish();
+    set_global_default(subscriber).expect("Failed to set subscriber");
+    LogTracer::init().expect("Failed to set logger");
     info!("Starting polygon-data-relay");
 
     let tickers: Vec<String> = env::var("TICKERS")
