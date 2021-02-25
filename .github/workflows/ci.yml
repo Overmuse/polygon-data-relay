@@ -179,6 +179,14 @@ jobs:
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: ci-cd
+          SLACK_TITLE: Build started
+          SLACK_MESSSAGE: ':rocket:'
+          SLACK_USERNAME: d-ploy3000
+          SLACK_WEBHOOK: ${{ secrets.SLACK_CI_WEBHOOK }}
       - name: Build, tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -188,3 +196,11 @@ jobs:
         run: |
           docker build --ssh default -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      - name: Deploy success
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_CHANNEL: ci-cd
+          SLACK_TITLE: Build succesful!
+          SLACK_MESSSAGE: ':tada:'
+          SLACK_USERNAME: d-ploy3000
+          SLACK_WEBHOOK: ${{ secrets.SLACK_CI_WEBHOOK }}
