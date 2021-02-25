@@ -10,23 +10,21 @@ use tracing::{debug, error};
 
 pub async fn run(ws: WebSocket) {
     let producer = kafka_producer().unwrap();
-    ws.for_each(|messages| async {
-        match messages {
-            Ok(messages) => {
-                for message in messages {
-                    let topic = get_topic(&message);
-                    let key = get_key(&message);
-                    let payload = serde_json::to_string(&message);
-                    match payload {
-                        Ok(payload) => {
-                            debug!(
-                                "Message received: {}. Assigning key: {}, sending to topic: {}",
-                                &payload, &key, &topic
-                            );
-                            producer.send(FutureRecord::to(topic).key(key).payload(&payload), 0);
-                        }
-                        Err(_) => error!("Failed to serialize payload: {:?}", &message),
+    ws.for_each(|message| async {
+        match message {
+            Ok(message) => {
+                let topic = get_topic(&message);
+                let key = get_key(&message);
+                let payload = serde_json::to_string(&message);
+                match payload {
+                    Ok(payload) => {
+                        debug!(
+                            "Message received: {}. Assigning key: {}, sending to topic: {}",
+                            &payload, &key, &topic
+                        );
+                        producer.send(FutureRecord::to(topic).key(key).payload(&payload), 0);
                     }
+                    Err(_) => error!("Failed to serialize payload: {:?}", &message),
                 }
             }
             Err(e) => error!("Failed to receive message from the WebSocket: {}", e),

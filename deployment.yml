@@ -35,6 +35,11 @@ spec:
           value: "1"
         - name: SECOND_AGGREGATES
           value: "1"
+        - name: POLYGON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: polygon
+              key: POLYGON_KEY
         - name: SASL_USERNAME
           valueFrom:
             secretKeyRef:
