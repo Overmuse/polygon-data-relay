@@ -8,8 +8,8 @@ use rdkafka::{
 use std::env;
 use tracing::{debug, error};
 
-pub async fn run(ws: WebSocket) {
-    let producer = kafka_producer().unwrap();
+pub async fn run(ws: WebSocket) -> Result<()> {
+    let producer = kafka_producer()?;
     ws.for_each(|message| async {
         match message {
             Ok(message) => {
@@ -31,6 +31,7 @@ pub async fn run(ws: WebSocket) {
         }
     })
     .await;
+    Ok(())
 }
 
 pub fn kafka_producer() -> Result<FutureProducer> {
@@ -40,8 +41,13 @@ pub fn kafka_producer() -> Result<FutureProducer> {
         .set("sasl.mechanisms", "PLAIN")
         .set("sasl.username", &env::var("SASL_USERNAME")?)
         .set("sasl.password", &env::var("SASL_PASSWORD")?)
+        // Don't resend any messages
+        .set("message.send.max.retries", "0")
+        // Send messages every 2ms as a group
+        .set("queue.buffering.max.ms", "2")
+        // Don't wait for acknowledgement from the server, just blast things
+        .set("request.required.acks", "0")
         .set("enable.ssl.certificate.verification", "false")
-        .set("message.timeout.ms", "5000")
         .create()
         .context("Failed to create Kafka producer")
 }
