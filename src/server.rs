@@ -1,4 +1,3 @@
-use rocket;
 use rocket::http::Status;
 
 #[get("/health")]
