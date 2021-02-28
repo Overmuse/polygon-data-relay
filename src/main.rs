@@ -1,8 +1,10 @@
 use anyhow::{Context, Result};
 use dotenv::dotenv;
 use polygon::ws::Connection;
-use polygon_data_relay::run;
+use polygon_data_relay::relay::run;
+use polygon_data_relay::server::launch_server;
 use std::env;
+use tokio::select;
 use tracing::{debug, info, subscriber::set_global_default};
 use tracing_log::LogTracer;
 use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
@@ -46,6 +48,9 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to conect to the WebSocket")?;
 
-    run(ws).await;
+    let _res = select! {
+         x = run(ws) => x?,
+         y = async {launch_server()} => y
+    };
     Ok(())
 }

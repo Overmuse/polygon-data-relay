@@ -1,4 +1,4 @@
-FROM rust as planner
+FROM rustlang/rust:nightly as planner
 WORKDIR polygon-data-relay
 # We only pay the installation cost once, 
 # it will be cached from the second build onwards
@@ -10,13 +10,13 @@ COPY . .
 
 RUN cargo chef prepare  --recipe-path recipe.json
 
-FROM rust as cacher
+FROM rustlang/rust:nightly as cacher
 WORKDIR polygon-data-relay
 RUN cargo install cargo-chef
 COPY --from=planner /polygon-data-relay/recipe.json recipe.json
 RUN --mount=type=ssh cargo chef cook --release --recipe-path recipe.json
 
-FROM rust as builder
+FROM rustlang/rust:nightly as builder
 WORKDIR polygon-data-relay
 COPY . .
 # Copy over the cached dependencies
