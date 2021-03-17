@@ -4,13 +4,13 @@ use polygon::ws::Connection;
 use polygon_data_relay::relay::run;
 use polygon_data_relay::server::launch_server;
 use std::env;
-use tokio::select;
+use std::sync::mpsc::channel;
+use std::thread;
 use tracing::{debug, info, subscriber::set_global_default};
 use tracing_log::LogTracer;
 use tracing_subscriber::{filter::EnvFilter, FmtSubscriber};
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> Result<()> {
     let _ = dotenv();
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
@@ -42,15 +42,22 @@ async fn main() -> Result<()> {
         data.push("AM".to_string());
         debug!("Will subscribe to MinuteAggregates");
     }
+    let base_url = env::var("POLYGON_BASE_URL").context("Cound not find POLYGON_BASE_URL")?;
     let token = env::var("POLYGON_KEY").context("Could not find POLYGON_KEY")?;
-    let ws = Connection::new(token, data, tickers)
-        .connect()
-        .await
-        .context("Failed to conect to the WebSocket")?;
+    let connection = Connection::new(base_url, token, data, tickers);
 
-    let _res = select! {
-         x = run(ws) => x?,
-         y = async {launch_server()} => y
-    };
+    let (tx, rx) = channel();
+
+    thread::spawn(|| {
+        let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
+        tokio_runtime.block_on(async {
+            run(connection, rx).await.unwrap();
+        });
+    });
+    let sys = actix_web::rt::System::new();
+    sys.block_on(async move {
+        launch_server(tx).unwrap().await.unwrap();
+    });
+
     Ok(())
 }

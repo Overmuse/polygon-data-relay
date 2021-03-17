@@ -24,15 +24,9 @@ spec:
       containers:
       - name: polygon-data-relay
         image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/polygon-data-relay:${IMAGE_TAG}
-	    ports:
-          - containerPort: 8000    
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
         env:
         - name: TICKERS
-          value: "AAPL"
+          value: "MSFT,AAPL,AMZN,FB,BRK.B,JPM,GOOG,GOOGL,JNJ,PG,V,XOM,T,HD,VZ,MA,BAC,DIS,INTC,CVX,MRK,UNH,KO,CMCSA,CSCO,BA,WFC,PFE,PEP,WMT,MCD,C,MDT,ABT,ADBE,CRM,IBM,COST,PM,TXN,ACN,NFLX,PYPL,ORCL,HON,NKE,AMGN,NEE,TMO,AVGO" 
         - name: QUOTES
           value: "1"
         - name: TRADES
@@ -41,8 +35,6 @@ spec:
           value: "1"
         - name: SECOND_AGGREGATES
           value: "1"
-        - name: ROCKET_ENV
-          value: "production"
         - name: POLYGON_KEY
           valueFrom:
             secretKeyRef:
@@ -68,16 +60,3 @@ spec:
             configMapKeyRef:
               name: polygon-data-relay
               key: group_id
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: polygon-data-relay-service
-spec:
-  selector:
-  	app: polygon-data-relay
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8000
