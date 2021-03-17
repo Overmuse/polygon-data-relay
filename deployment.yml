@@ -24,6 +24,8 @@ spec:
       containers:
       - name: polygon-data-relay
         image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/polygon-data-relay:${IMAGE_TAG}
+        ports:
+        - containerPort: 8888
         livenessProbe:
           httpGet:
             path: /health_check
