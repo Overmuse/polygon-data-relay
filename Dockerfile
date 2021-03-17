@@ -28,5 +28,6 @@ FROM debian:buster-slim as runtime
 WORKDIR app
 COPY --from=builder /app/target/release/polygon-data-relay /usr/local/bin
 ENV RUST_LOG=polygon_data_relay=debug
+EXPOSE 8888
 RUN apt-get update && apt-get -y install ca-certificates libssl-dev && rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/local/bin/polygon-data-relay"]
