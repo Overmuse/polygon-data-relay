@@ -8,7 +8,7 @@ use std::sync::mpsc::Sender;
 mod routes;
 
 pub fn launch_server(tx: Sender<PolygonAction>) -> Result<Server, std::io::Error> {
-    let address = TcpListener::bind("localhost:8888")?;
+    let address = TcpListener::bind("0.0.0.0:8888")?;
     let server = HttpServer::new(move || {
         App::new()
             .data(tx.clone())
