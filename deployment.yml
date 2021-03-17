@@ -41,6 +41,8 @@ spec:
           value: "1"
         - name: SECOND_AGGREGATES
           value: "1"
+        - name: POLYGON_BASE_URL
+          value: "wss://socket.polygon.io/stocks"
         - name: POLYGON_KEY
           valueFrom:
             secretKeyRef:
