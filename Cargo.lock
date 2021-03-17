@@ -1048,7 +1048,7 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 [[package]]
 name = "polygon"
 version = "0.3.0"
-source = "git+ssh://git@github.com/Overmuse/polygon?branch=SR/impl_sink#f02f08dd7fad456182700f6195b8f1cf44fe4628"
+source = "git+ssh://git@github.com/Overmuse/polygon?branch=main#1748f1b4279444e94c57e88884d0a368792ea746"
 dependencies = [
  "chrono",
  "futures",
