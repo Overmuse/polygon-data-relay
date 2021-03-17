@@ -1,36 +1,52 @@
 use anyhow::{Context, Result};
-use futures::StreamExt;
-use polygon::ws::{PolygonMessage, WebSocket};
+use futures::{SinkExt, StreamExt};
+use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
 use rdkafka::{
     producer::{FutureProducer, FutureRecord},
     ClientConfig,
 };
 use std::env;
-use tracing::{debug, error};
+use std::sync::mpsc::Receiver;
+use tracing::{debug, error, info};
 
-pub async fn run(ws: WebSocket) -> Result<()> {
+pub async fn run(connection: Connection, rx: Receiver<PolygonAction>) -> Result<()> {
     let producer = kafka_producer()?;
-    ws.for_each(|message| async {
-        match message {
-            Ok(message) => {
-                let topic = get_topic(&message);
-                let key = get_key(&message);
-                let payload = serde_json::to_string(&message);
-                match payload {
-                    Ok(payload) => {
-                        debug!(
-                            "Message received: {}. Assigning key: {}, sending to topic: {}",
-                            &payload, &key, &topic
-                        );
-                        producer.send(FutureRecord::to(topic).key(key).payload(&payload), 0);
-                    }
-                    Err(_) => error!("Failed to serialize payload: {:?}", &message),
-                }
-            }
-            Err(e) => error!("Failed to receive message from the WebSocket: {}", e),
+    let ws = connection.connect().await.context("Failed to connect")?;
+    let (mut sink, stream) = ws.split::<String>();
+    tokio::spawn(async move {
+        loop {
+            let msg = rx.recv().expect("Failed to receive message");
+            let msg_str = serde_json::to_string(&msg).expect("Failed to serialize command");
+            info!("Control message received: {}", &msg_str);
+            sink.send(msg_str)
+                .await
+                .map_err(|_| Err::<(), String>("Failed to send message to Sink".into()))
+                .unwrap();
         }
-    })
-    .await;
+    });
+
+    stream
+        .for_each_concurrent(None, |message| async {
+            match message {
+                Ok(message) => {
+                    let topic = get_topic(&message);
+                    let key = get_key(&message);
+                    let payload = serde_json::to_string(&message);
+                    match payload {
+                        Ok(payload) => {
+                            debug!(
+                                "Message received: {}. Assigning key: {}, sending to topic: {}",
+                                &payload, &key, &topic
+                            );
+                            producer.send(FutureRecord::to(topic).key(key).payload(&payload), 0);
+                        }
+                        Err(_) => error!("Failed to serialize payload: {:?}", &message),
+                    }
+                }
+                Err(e) => error!("Failed to receive message from the WebSocket: {}", e),
+            }
+        })
+        .await;
     Ok(())
 }
 
@@ -56,18 +72,18 @@ fn get_topic(s: &PolygonMessage) -> &str {
     match s {
         PolygonMessage::Trade { .. } => "trades",
         PolygonMessage::Quote { .. } => "quotes",
-        PolygonMessage::SecondAggregate { .. } => "second-aggregates",
-        PolygonMessage::MinuteAggregate { .. } => "minute-aggregates",
+        PolygonMessage::Second { .. } => "second-aggregates",
+        PolygonMessage::Minute { .. } => "minute-aggregates",
         PolygonMessage::Status { .. } => "meta",
     }
 }
 
 fn get_key(s: &PolygonMessage) -> &str {
     match s {
-        PolygonMessage::Trade { symbol, .. } => symbol,
-        PolygonMessage::Quote { symbol, .. } => symbol,
-        PolygonMessage::SecondAggregate { symbol, .. } => symbol,
-        PolygonMessage::MinuteAggregate { symbol, .. } => symbol,
+        PolygonMessage::Trade(Trade { symbol, .. }) => symbol,
+        PolygonMessage::Quote(Quote { symbol, .. }) => symbol,
+        PolygonMessage::Second(Aggregate { symbol, .. }) => symbol,
+        PolygonMessage::Minute(Aggregate { symbol, .. }) => symbol,
         PolygonMessage::Status { .. } => "status", // unkeyed on purpose to preserve ordering
     }
 }
