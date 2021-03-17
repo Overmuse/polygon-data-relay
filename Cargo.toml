@@ -1,6 +1,6 @@
 [package]
 name = "polygon-data-relay"
-version = "0.2.0"
+version = "0.3.0"
 authors = ["Sebastian Rollen <rollenseb@gmail.com>"]
 edition = "2018"
 
@@ -12,7 +12,7 @@ anyhow = "1.0"
 dotenv = "0.15"
 rdkafka = { version = "0.23", features = ["ssl-vendored"] }
 futures = "0.3"
-polygon = { version = "0.3.0", git = "ssh://git@github.com/Overmuse/polygon", branch = "main", default-features = false, features = ["ws"] }
+polygon = { version = "0.4.0", git = "ssh://git@github.com/Overmuse/polygon", branch = "main", default-features = false, features = ["ws"] }
 serde = "1.0"
 serde_json = "1.0"
 tokio = {version = "1.2", features = ["macros", "rt-multi-thread"]}

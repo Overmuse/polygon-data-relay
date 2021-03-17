@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use futures::{SinkExt, StreamExt};
-use polygon::ws::{Connection, PolygonAction, PolygonMessage};
+use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
 use rdkafka::{
     producer::{FutureProducer, FutureRecord},
     ClientConfig,
@@ -72,18 +72,18 @@ fn get_topic(s: &PolygonMessage) -> &str {
     match s {
         PolygonMessage::Trade { .. } => "trades",
         PolygonMessage::Quote { .. } => "quotes",
-        PolygonMessage::SecondAggregate { .. } => "second-aggregates",
-        PolygonMessage::MinuteAggregate { .. } => "minute-aggregates",
+        PolygonMessage::Second { .. } => "second-aggregates",
+        PolygonMessage::Minute { .. } => "minute-aggregates",
         PolygonMessage::Status { .. } => "meta",
     }
 }
 
 fn get_key(s: &PolygonMessage) -> &str {
     match s {
-        PolygonMessage::Trade { symbol, .. } => symbol,
-        PolygonMessage::Quote { symbol, .. } => symbol,
-        PolygonMessage::SecondAggregate { symbol, .. } => symbol,
-        PolygonMessage::MinuteAggregate { symbol, .. } => symbol,
+        PolygonMessage::Trade(Trade { symbol, .. }) => symbol,
+        PolygonMessage::Quote(Quote { symbol, .. }) => symbol,
+        PolygonMessage::Second(Aggregate { symbol, .. }) => symbol,
+        PolygonMessage::Minute(Aggregate { symbol, .. }) => symbol,
         PolygonMessage::Status { .. } => "status", // unkeyed on purpose to preserve ordering
     }
 }

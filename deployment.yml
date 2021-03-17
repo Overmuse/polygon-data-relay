@@ -24,6 +24,10 @@ spec:
       containers:
       - name: polygon-data-relay
         image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/polygon-data-relay:${IMAGE_TAG}
+        livenessProbe:
+          httpGet:
+            path: /health_check
+            port: 8888
         env:
         - name: TICKERS
           value: "MSFT,AAPL,AMZN,FB,BRK.B,JPM,GOOG,GOOGL,JNJ,PG,V,XOM,T,HD,VZ,MA,BAC,DIS,INTC,CVX,MRK,UNH,KO,CMCSA,CSCO,BA,WFC,PFE,PEP,WMT,MCD,C,MDT,ABT,ADBE,CRM,IBM,COST,PM,TXN,ACN,NFLX,PYPL,ORCL,HON,NKE,AMGN,NEE,TMO,AVGO" 
