@@ -1,4 +1,3 @@
-use crate::server::Command;
 use actix_web::{
     web::{Data, Query},
     HttpResponse,
@@ -13,11 +12,11 @@ pub struct Subscribe {
     ticker: String,
 }
 
-pub async fn subscribe(message: Query<Subscribe>, tx: Data<Sender<Command>>) -> HttpResponse {
-    let response = tx.send(Command::Polygon(PolygonAction {
+pub async fn subscribe(message: Query<Subscribe>, tx: Data<Sender<PolygonAction>>) -> HttpResponse {
+    let response = tx.send(PolygonAction {
         action: "subscribe".into(),
         params: format!("{}.{}", message.stream, message.ticker).into(),
-    }));
+    });
 
     match response {
         Ok(_) => HttpResponse::Ok().finish(),

@@ -60,3 +60,15 @@ spec:
             configMapKeyRef:
               name: polygon-data-relay
               key: group_id
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: polygon-data-relay-service
+spec:
+  selector:
+    app: polygon-data-relay
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8888

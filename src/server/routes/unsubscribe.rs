@@ -1,4 +1,3 @@
-use crate::server::Command;
 use actix_web::{
     web::{Data, Query},
     HttpResponse,
@@ -13,11 +12,14 @@ pub struct Unsubscribe {
     ticker: String,
 }
 
-pub async fn unsubscribe(message: Query<Unsubscribe>, tx: Data<Sender<Command>>) -> HttpResponse {
-    let response = tx.send(Command::Polygon(PolygonAction {
+pub async fn unsubscribe(
+    message: Query<Unsubscribe>,
+    tx: Data<Sender<PolygonAction>>,
+) -> HttpResponse {
+    let response = tx.send(PolygonAction {
         action: "unsubscribe".into(),
         params: format!("{}.{}", message.stream, message.ticker).into(),
-    }));
+    });
     match response {
         Ok(_) => HttpResponse::Ok().finish(),
         Err(_) => HttpResponse::InternalServerError().finish(),

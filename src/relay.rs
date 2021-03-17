@@ -1,7 +1,6 @@
-use crate::server::Command;
 use anyhow::{Context, Result};
 use futures::{SinkExt, StreamExt};
-use polygon::ws::{Connection, PolygonMessage};
+use polygon::ws::{Connection, PolygonAction, PolygonMessage};
 use rdkafka::{
     producer::{FutureProducer, FutureRecord},
     ClientConfig,
@@ -10,7 +9,7 @@ use std::env;
 use std::sync::mpsc::Receiver;
 use tracing::{debug, error, info};
 
-pub async fn run(connection: Connection, rx: Receiver<Command>) -> Result<()> {
+pub async fn run(connection: Connection, rx: Receiver<PolygonAction>) -> Result<()> {
     let producer = kafka_producer()?;
     let ws = connection.connect().await.context("Failed to connect")?;
     let (mut sink, stream) = ws.split::<String>();
