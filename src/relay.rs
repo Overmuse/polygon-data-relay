@@ -26,7 +26,7 @@ pub async fn run(connection: Connection, rx: Receiver<PolygonAction>) -> Result<
     });
 
     stream
-        .for_each(|message| async {
+        .for_each_concurrent(None, |message| async {
             match message {
                 Ok(message) => {
                     let topic = get_topic(&message);
