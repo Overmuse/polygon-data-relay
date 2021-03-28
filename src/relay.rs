@@ -1,4 +1,4 @@
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use futures::{SinkExt, StreamExt};
 use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
 use rdkafka::{
@@ -9,7 +9,7 @@ use std::env;
 use std::sync::mpsc::Receiver;
 use tracing::{debug, error, info};
 
-pub async fn run(connection: Connection, rx: Receiver<PolygonAction>) -> Result<()> {
+pub async fn run<'a>(connection: Connection<'a>, rx: Receiver<PolygonAction>) -> Result<()> {
     let producer = kafka_producer()?;
     let ws = connection.connect().await.context("Failed to connect")?;
     let (mut sink, stream) = ws.split::<String>();
@@ -20,7 +20,7 @@ pub async fn run(connection: Connection, rx: Receiver<PolygonAction>) -> Result<
             info!("Control message received: {}", &msg_str);
             sink.send(msg_str)
                 .await
-                .map_err(|_| Err::<(), String>("Failed to send message to Sink".into()))
+                .map_err(|_| anyhow!("Failed to send message to Sink"))
                 .unwrap();
         }
     });

@@ -19,36 +19,33 @@ fn main() -> Result<()> {
     LogTracer::init().expect("Failed to set logger");
     info!("Starting polygon-data-relay");
 
-    let tickers: Vec<String> = env::var("TICKERS")
-        .context("Could not find TICKERS")?
-        .split(',')
-        .map(|x| x.to_string())
-        .collect();
-    let mut data: Vec<String> = vec![];
+    let tickers: String = env::var("TICKERS").context("Could not find TICKERS")?;
+    let mut data: Vec<&str> = vec![];
 
     if env::var("QUOTES").is_ok() {
-        data.push("Q".to_string());
+        data.push("Q");
         debug!("Will subscribe to Quotes");
     }
     if env::var("TRADES").is_ok() {
-        data.push("T".to_string());
+        data.push("T");
         debug!("Will subscribe to Trades");
     }
     if env::var("SECOND_AGGREGATES").is_ok() {
-        data.push("A".to_string());
+        data.push("A");
         debug!("Will subscribe to SecondAggregates");
     }
     if env::var("MINUTE_AGGREGATES").is_ok() {
-        data.push("AM".to_string());
+        data.push("AM");
         debug!("Will subscribe to MinuteAggregates");
     }
     let base_url = env::var("POLYGON_BASE_URL").context("Cound not find POLYGON_BASE_URL")?;
     let token = env::var("POLYGON_KEY").context("Could not find POLYGON_KEY")?;
-    let connection = Connection::new(base_url, token, data, tickers);
 
     let (tx, rx) = channel();
 
-    thread::spawn(|| {
+    thread::spawn(move || {
+        let tickers: Vec<&str> = tickers.split(',').collect();
+        let connection = Connection::new(&base_url, &token, &data, &tickers);
         let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
         tokio_runtime.block_on(async {
             run(connection, rx).await.unwrap();

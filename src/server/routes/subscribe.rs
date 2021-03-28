@@ -15,7 +15,7 @@ pub struct Subscribe {
 pub async fn subscribe(message: Query<Subscribe>, tx: Data<Sender<PolygonAction>>) -> HttpResponse {
     let response = tx.send(PolygonAction {
         action: "subscribe".into(),
-        params: format!("{}.{}", message.stream, message.ticker),
+        params: format!("{}.{}", message.stream, message.ticker).into(),
     });
 
     match response {
