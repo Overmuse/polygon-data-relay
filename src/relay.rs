@@ -1,16 +1,19 @@
+use crate::settings::Settings;
 use anyhow::{anyhow, Context, Result};
 use futures::{SinkExt, StreamExt};
+use kafka_settings::producer;
 use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
-use rdkafka::{
-    producer::{FutureProducer, FutureRecord},
-    ClientConfig,
-};
-use std::env;
+use rdkafka::producer::FutureRecord;
 use std::sync::mpsc::Receiver;
+use std::time::Duration;
 use tracing::{debug, error, info};
 
-pub async fn run<'a>(connection: Connection<'a>, rx: Receiver<PolygonAction>) -> Result<()> {
-    let producer = kafka_producer()?;
+pub async fn run<'a>(
+    settings: Settings,
+    connection: Connection<'a>,
+    rx: Receiver<PolygonAction>,
+) -> Result<()> {
+    let producer = producer(&settings.kafka)?;
     let ws = connection.connect().await.context("Failed to connect")?;
     let (mut sink, stream) = ws.split::<String>();
     tokio::spawn(async move {
@@ -38,7 +41,18 @@ pub async fn run<'a>(connection: Connection<'a>, rx: Receiver<PolygonAction>) ->
                                 "Message received: {}. Assigning key: {}, sending to topic: {}",
                                 &payload, &key, &topic
                             );
-                            producer.send(FutureRecord::to(topic).key(key).payload(&payload), 0);
+                            let res = producer
+                                .send(
+                                    FutureRecord::to(topic).key(key).payload(&payload),
+                                    Duration::from_secs(0),
+                                )
+                                .await;
+                            if let Err((e, msg)) = res {
+                                error!(
+                                    "Failed to send message to kafka. Message: {:?}\nError: {}",
+                                    msg, e
+                                )
+                            }
                         }
                         Err(_) => error!("Failed to serialize payload: {:?}", &message),
                     }
@@ -48,24 +62,6 @@ pub async fn run<'a>(connection: Connection<'a>, rx: Receiver<PolygonAction>) ->
         })
         .await;
     Ok(())
-}
-
-pub fn kafka_producer() -> Result<FutureProducer> {
-    ClientConfig::new()
-        .set("bootstrap.servers", &env::var("BOOTSTRAP_SERVERS")?)
-        .set("security.protocol", "SASL_SSL")
-        .set("sasl.mechanisms", "PLAIN")
-        .set("sasl.username", &env::var("SASL_USERNAME")?)
-        .set("sasl.password", &env::var("SASL_PASSWORD")?)
-        // Don't resend any messages
-        .set("message.send.max.retries", "0")
-        // Send messages every 2ms as a group
-        .set("queue.buffering.max.ms", "2")
-        // Don't wait for acknowledgement from the server, just blast things
-        .set("request.required.acks", "0")
-        .set("enable.ssl.certificate.verification", "false")
-        .create()
-        .context("Failed to create Kafka producer")
 }
 
 fn get_topic(s: &PolygonMessage) -> &str {

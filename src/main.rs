@@ -3,6 +3,7 @@ use dotenv::dotenv;
 use polygon::ws::Connection;
 use polygon_data_relay::relay::run;
 use polygon_data_relay::server::launch_server;
+use polygon_data_relay::settings::Settings;
 use std::env;
 use std::sync::mpsc::channel;
 use std::thread;
@@ -17,6 +18,7 @@ fn main() -> Result<()> {
         .finish();
     set_global_default(subscriber).expect("Failed to set subscriber");
     LogTracer::init().expect("Failed to set logger");
+    let settings = Settings::new()?;
     info!("Starting polygon-data-relay");
 
     let tickers: String = env::var("TICKERS").context("Could not find TICKERS")?;
@@ -48,7 +50,7 @@ fn main() -> Result<()> {
         let connection = Connection::new(&base_url, &token, &data, &tickers);
         let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
         tokio_runtime.block_on(async {
-            run(connection, rx).await.unwrap();
+            run(settings, connection, rx).await.unwrap();
         });
     });
     let sys = actix_web::rt::System::new();
