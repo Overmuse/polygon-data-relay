@@ -1,10 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: polygon-data-relay
+  name: polygon-data-relay-config-map
 data:
-  bootstrap_servers: "pkc-ep9mm.us-east-2.aws.confluent.cloud:9092"
   group_id: "polygon-data-relay"
+  tickers: "AAPL"
+  quotes: "true"
+  trades: "true"
+  minute_aggregates: "true"
+  second_aggregates: "true"
 
 ---
 apiVersion: apps/v1
@@ -24,50 +28,15 @@ spec:
       containers:
       - name: polygon-data-relay
         image: 799439856592.dkr.ecr.us-east-1.amazonaws.com/polygon-data-relay:${IMAGE_TAG}
-        ports:
-        - containerPort: 8888
-        livenessProbe:
-          httpGet:
-            path: /health_check
-            port: 8888
-        env:
-        - name: TICKERS
-          value: "MSFT,AAPL,AMZN,FB,BRK.B,JPM,GOOG,GOOGL,JNJ,PG,V,XOM,T,HD,VZ,MA,BAC,DIS,INTC,CVX,MRK,UNH,KO,CMCSA,CSCO,BA,WFC,PFE,PEP,WMT,MCD,C,MDT,ABT,ADBE,CRM,IBM,COST,PM,TXN,ACN,NFLX,PYPL,ORCL,HON,NKE,AMGN,NEE,TMO,AVGO" 
-        - name: QUOTES
-          value: "1"
-        - name: TRADES
-          value: "1"
-        - name: MINUTE_AGGREGATES
-          value: "1"
-        - name: SECOND_AGGREGATES
-          value: "1"
-        - name: POLYGON_BASE_URL
-          value: "wss://socket.polygon.io/stocks"
-        - name: POLYGON_KEY
-          valueFrom:
-            secretKeyRef:
+        envFrom:
+          - configMapRef:
+              name: polygon-data-relay-config-map
+          - configMapRef:
+              name: kafka-config-map
+          - secretRef:
+              name: kafka
+          - secretRef:
               name: polygon
-              key: POLYGON_KEY
-        - name: SASL_USERNAME
-          valueFrom:
-            secretKeyRef:
-              name: kafka
-              key: SASL_USERNAME
-        - name: SASL_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: kafka
-              key: SASL_PASSWORD
-        - name: BOOTSTRAP_SERVERS
-          valueFrom:
-            configMapKeyRef:
-              name: polygon-data-relay
-              key: bootstrap_servers
-        - name: GROUP_ID
-          valueFrom:
-            configMapKeyRef:
-              name: polygon-data-relay
-              key: group_id
 ---
 apiVersion: v1
 kind: Service
