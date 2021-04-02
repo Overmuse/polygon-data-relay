@@ -3,7 +3,14 @@ use kafka_settings::KafkaSettings;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
+pub struct WebServerSettings {
+    pub address: String,
+    pub port: usize,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Settings {
+    pub server: WebServerSettings,
     pub kafka: KafkaSettings,
 }
 

@@ -45,17 +45,20 @@ fn main() -> Result<()> {
 
     let (tx, rx) = channel();
 
+    let kafka_settings = settings.kafka;
+    let server_settings = settings.server;
+
     thread::spawn(move || {
         let tickers: Vec<&str> = tickers.split(',').collect();
         let connection = Connection::new(&base_url, &token, &data, &tickers);
         let tokio_runtime = tokio::runtime::Runtime::new().unwrap();
         tokio_runtime.block_on(async {
-            run(settings, connection, rx).await.unwrap();
+            run(&kafka_settings, connection, rx).await.unwrap();
         });
     });
     let sys = actix_web::rt::System::new();
     sys.block_on(async move {
-        launch_server(tx).unwrap().await.unwrap();
+        launch_server(&server_settings, tx).unwrap().await.unwrap();
     });
 
     Ok(())

@@ -1,7 +1,6 @@
-use crate::settings::Settings;
 use anyhow::{anyhow, Context, Result};
 use futures::{SinkExt, StreamExt};
-use kafka_settings::producer;
+use kafka_settings::{producer, KafkaSettings};
 use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
 use rdkafka::producer::FutureRecord;
 use std::sync::mpsc::Receiver;
@@ -9,11 +8,11 @@ use std::time::Duration;
 use tracing::{debug, error, info};
 
 pub async fn run<'a>(
-    settings: Settings,
+    settings: &KafkaSettings,
     connection: Connection<'a>,
     rx: Receiver<PolygonAction>,
 ) -> Result<()> {
-    let producer = producer(&settings.kafka)?;
+    let producer = producer(settings)?;
     let ws = connection.connect().await.context("Failed to connect")?;
     let (mut sink, stream) = ws.split::<String>();
     tokio::spawn(async move {

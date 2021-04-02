@@ -1,3 +1,4 @@
+use crate::settings::WebServerSettings;
 use actix_web::dev::Server;
 use actix_web::{web, App, HttpServer};
 use polygon::ws::types::PolygonAction;
@@ -7,8 +8,11 @@ use std::sync::mpsc::Sender;
 
 mod routes;
 
-pub fn launch_server(tx: Sender<PolygonAction>) -> Result<Server, std::io::Error> {
-    let address = TcpListener::bind("0.0.0.0:8888")?;
+pub fn launch_server(
+    settings: &WebServerSettings,
+    tx: Sender<PolygonAction>,
+) -> Result<Server, std::io::Error> {
+    let address = TcpListener::bind(format!("{}:{}", settings.address, settings.port))?;
     let server = HttpServer::new(move || {
         App::new()
             .data(tx.clone())
