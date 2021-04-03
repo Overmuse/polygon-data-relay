@@ -18,7 +18,7 @@ pub async fn unsubscribe(
 ) -> HttpResponse {
     let response = tx.send(PolygonAction {
         action: "unsubscribe".into(),
-        params: format!("{}.{}", message.stream, message.ticker),
+        params: format!("{}.{}", message.stream, message.ticker).into(),
     });
     match response {
         Ok(_) => HttpResponse::Ok().finish(),
