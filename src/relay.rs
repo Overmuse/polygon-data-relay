@@ -7,9 +7,9 @@ use std::sync::mpsc::Receiver;
 use std::time::Duration;
 use tracing::{debug, error, info};
 
-pub async fn run<'a>(
+pub async fn run(
     settings: &KafkaSettings,
-    connection: Connection<'a>,
+    connection: Connection<'_>,
     rx: Receiver<PolygonAction>,
 ) -> Result<()> {
     let producer = producer(settings)?;
