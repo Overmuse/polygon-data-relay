@@ -11,7 +11,7 @@ data:
   POLYGON__MINUTE_AGGREGATES: "true"
   POLYGON__SECOND_AGGREGATES: "true"
   SERVER__ADDRESS: 0.0.0.0
-  SERVER__PORT: 8888
+  SERVER__PORT: "8888"
 
 ---
 apiVersion: apps/v1
