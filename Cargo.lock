@@ -745,8 +745,8 @@ checksum = "dd25036021b0de88a0aff6b850051563c6516d0bf53f8638938edbb9de732736"
 
 [[package]]
 name = "kafka-settings"
-version = "0.1.0"
-source = "git+ssh://git@github.com/Overmuse/kafka-settings?tag=v0.1.0#670c27de25cc64e15402af26bb79b7a1cb335ba1"
+version = "0.2.2"
+source = "git+ssh://git@github.com/Overmuse/kafka-settings?tag=v0.2.2#e5056ca211632476f2fb74ffe15bc915a9a878f9"
 dependencies = [
  "rdkafka",
  "serde 1.0.125",
@@ -821,9 +821,9 @@ checksum = "84f9a2d3e27ce99ce2c3aad0b09b1a7b916293ea9b2bf624c13fe646fadd8da4"
 
 [[package]]
 name = "lock_api"
-version = "0.4.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd96ffd135b2fd7b973ac026d28085defbe8983df057ced3eb4f2130b0831312"
+checksum = "5a3c91c24eae6777794bb1997ad98bbb87daf92890acab859f7eaa4320333176"
 dependencies = [
  "scopeguard",
 ]
