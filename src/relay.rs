@@ -47,16 +47,25 @@ pub async fn run(
                                 )
                                 .await;
                             if let Err((e, msg)) = res {
+                                let e = e.into();
+                                sentry_anyhow::capture_anyhow(&e);
                                 error!(
                                     "Failed to send message to kafka. Message: {:?}\nError: {}",
                                     msg, e
                                 )
                             }
                         }
-                        Err(_) => error!("Failed to serialize payload: {:?}", &message),
+                        Err(e) => {
+                            sentry_anyhow::capture_anyhow(&e.into());
+                            error!("Failed to serialize payload: {:?}", &message)
+                        }
                     }
                 }
-                Err(e) => error!("Failed to receive message from the WebSocket: {}", e),
+                Err(e) => {
+                    let e = e.into();
+                    sentry_anyhow::capture_anyhow(&e);
+                    error!("Failed to receive message from the WebSocket: {}", e)
+                }
             }
         })
         .await;

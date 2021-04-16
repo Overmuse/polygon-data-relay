@@ -33,10 +33,16 @@ where
 }
 
 #[derive(Debug, Deserialize)]
+pub struct SentrySettings {
+    pub address: String,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct Settings {
     pub server: WebServerSettings,
     pub kafka: KafkaSettings,
     pub polygon: PolygonSettings,
+    pub sentry: SentrySettings,
 }
 
 impl Settings {
