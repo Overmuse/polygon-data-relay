@@ -144,9 +144,9 @@ dependencies = [
 
 [[package]]
 name = "actix-utils"
-version = "3.0.0-beta.4"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7e96334417549752384b169ca5d52bcea9e5081dbb2d3933599ac8b770f642a"
+checksum = "e491cbaac2e7fc788dfff99ff48ef317e23b3cf63dbaf7aaab6418f40f92aa94"
 dependencies = [
  "local-waker",
  "pin-project-lite 0.2.6",
@@ -415,9 +415,9 @@ dependencies = [
 
 [[package]]
 name = "const_fn"
-version = "0.4.6"
+version = "0.4.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "076a6803b0dacd6a88cfe64deba628b01533ff5ef265687e6938280c1afd0a28"
+checksum = "402da840495de3f976eaefc3485b7f5eb5b0bf9761f9a47be27fe975b3b8c2ec"
 
 [[package]]
 name = "convert_case"
@@ -1409,12 +1409,13 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 
 [[package]]
 name = "polygon"
-version = "0.5.2"
-source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.5.2#8b882c3e4ca326aaa95a12690f353e3efc7e10c1"
+version = "0.6.0"
+source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.6.0#3fcf64bac4c2bf85c0791d9887a9163413ff9a9d"
 dependencies = [
  "chrono",
  "futures",
  "itertools",
+ "rust_decimal",
  "serde 1.0.125",
  "serde_json",
  "serde_repr",
@@ -1426,7 +1427,7 @@ dependencies = [
 
 [[package]]
 name = "polygon-data-relay"
-version = "1.0.2"
+version = "1.1.0"
 dependencies = [
  "actix-service",
  "actix-web",
@@ -1698,6 +1699,17 @@ name = "rust-ini"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e52c148ef37f8c375d49d5a73aa70713125b7f19095948a923f80afdeb22ec2"
+
+[[package]]
+name = "rust_decimal"
+version = "1.11.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ca515aafa02c92f4d3c69b2f4c408f839b51b1aa938d00b15e8c0966bd22d73"
+dependencies = [
+ "arrayvec",
+ "num-traits 0.2.14",
+ "serde 1.0.125",
+]
 
 [[package]]
 name = "rustc-demangle"

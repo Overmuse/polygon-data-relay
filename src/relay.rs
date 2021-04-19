@@ -28,46 +28,49 @@ pub async fn run(
     });
 
     stream
-        .for_each_concurrent(None, |message| async {
-            match message {
-                Ok(message) => {
-                    let topic = get_topic(&message);
-                    let key = get_key(&message);
-                    let payload = serde_json::to_string(&message);
-                    match payload {
-                        Ok(payload) => {
-                            debug!(
-                                "Message received: {}. Assigning key: {}, sending to topic: {}",
-                                &payload, &key, &topic
-                            );
-                            let res = producer
-                                .send(
-                                    FutureRecord::to(topic).key(key).payload(&payload),
-                                    Duration::from_secs(0),
-                                )
-                                .await;
-                            if let Err((e, msg)) = res {
-                                let e = e.into();
-                                sentry_anyhow::capture_anyhow(&e);
-                                error!(
-                                    "Failed to send message to kafka. Message: {:?}\nError: {}",
-                                    msg, e
-                                )
+        .for_each_concurrent(
+            100_000, // Equal to the max buffer size in rdkafka
+            |message| async {
+                match message {
+                    Ok(message) => {
+                        let topic = get_topic(&message);
+                        let key = get_key(&message);
+                        let payload = serde_json::to_string(&message);
+                        match payload {
+                            Ok(payload) => {
+                                debug!(
+                                    "Message received: {}. Assigning key: {}, sending to topic: {}",
+                                    &payload, &key, &topic
+                                );
+                                let res = producer
+                                    .send(
+                                        FutureRecord::to(topic).key(key).payload(&payload),
+                                        Duration::from_secs(0),
+                                    )
+                                    .await;
+                                if let Err((e, msg)) = res {
+                                    let e = e.into();
+                                    sentry_anyhow::capture_anyhow(&e);
+                                    error!(
+                                        "Failed to send message to kafka. Message: {:?}\nError: {}",
+                                        msg, e
+                                    )
+                                }
+                            }
+                            Err(e) => {
+                                sentry_anyhow::capture_anyhow(&e.into());
+                                error!("Failed to serialize payload: {:?}", &message)
                             }
                         }
-                        Err(e) => {
-                            sentry_anyhow::capture_anyhow(&e.into());
-                            error!("Failed to serialize payload: {:?}", &message)
-                        }
+                    }
+                    Err(e) => {
+                        let e = e.into();
+                        sentry_anyhow::capture_anyhow(&e);
+                        error!("Failed to receive message from the WebSocket: {}", e)
                     }
                 }
-                Err(e) => {
-                    let e = e.into();
-                    sentry_anyhow::capture_anyhow(&e);
-                    error!("Failed to receive message from the WebSocket: {}", e)
-                }
-            }
-        })
+            },
+        )
         .await;
     Ok(())
 }
