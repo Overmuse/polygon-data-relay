@@ -19,6 +19,7 @@ fn main() -> Result<()> {
     set_global_default(subscriber).expect("Failed to set subscriber");
     LogTracer::init().expect("Failed to set logger");
     let settings = Settings::new()?;
+    tracing::debug!("{:?}", settings);
     let _guard = sentry::init((
         settings.sentry.address,
         sentry::ClientOptions {

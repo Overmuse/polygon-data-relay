@@ -66,7 +66,7 @@ pub async fn run(
                     Err(e) => {
                         let e = e.into();
                         sentry_anyhow::capture_anyhow(&e);
-                        error!("Failed to receive message from the WebSocket: {}", e)
+                        panic!("Failed to receive message from the WebSocket: {}", e)
                     }
                 }
             },
