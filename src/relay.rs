@@ -29,7 +29,7 @@ pub async fn run(
 
     stream
         .for_each_concurrent(
-            100_000, // Equal to the max buffer size in rdkafka
+            10_000, // Equal to 1/10 the max buffer size in rdkafka
             |message| async {
                 match message {
                     Ok(message) => {
