@@ -1409,8 +1409,8 @@ checksum = "3831453b3449ceb48b6d9c7ad7c96d5ea673e9b470a1dc578c2ce6521230884c"
 
 [[package]]
 name = "polygon"
-version = "0.6.0"
-source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.6.0#3fcf64bac4c2bf85c0791d9887a9163413ff9a9d"
+version = "0.6.2"
+source = "git+ssh://git@github.com/Overmuse/polygon?tag=v0.6.2#cdd694802f3541809503de9fba078068ade1136b"
 dependencies = [
  "chrono",
  "futures",
@@ -1427,7 +1427,7 @@ dependencies = [
 
 [[package]]
 name = "polygon-data-relay"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "actix-service",
  "actix-web",
