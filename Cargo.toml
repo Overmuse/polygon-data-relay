@@ -14,7 +14,7 @@ config = "0.11.0"
 dotenv = "0.15"
 futures = "0.3"
 kafka-settings = { git = "ssh://git@github.com/Overmuse/kafka-settings", tag = "v0.3.1" }
-polygon = { git = "ssh://git@github.com/Overmuse/polygon", tag = "v0.6.2", default-features = false, features = ["ws"] }
+polygon = { git = "ssh://git@github.com/Overmuse/polygon", tag = "v0.6.3", default-features = false, features = ["ws"] }
 rdkafka = { version = "0.26", features = ["ssl-vendored"] }
 sentry = { version = "0.21.0", features = ["anyhow"] }
 sentry-anyhow = "0.21.0"
