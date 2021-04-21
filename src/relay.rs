@@ -63,11 +63,14 @@ pub async fn run(
                             }
                         }
                     }
-                    Err(e) => {
-                        let e = e.into();
-                        sentry_anyhow::capture_anyhow(&e);
-                        panic!("Failed to receive message from the WebSocket: {}", e)
-                    }
+                    Err(e) => match e {
+                        polygon::errors::Error::Serde { .. } => {
+                            let e = e.into();
+                            sentry_anyhow::capture_anyhow(&e);
+                            error!("Failed to reveive message from the WebSocket: {}", e)
+                        }
+                        _ => panic!("Failed to receive message from the WebSocket: {}", e),
+                    },
                 }
             },
         )
