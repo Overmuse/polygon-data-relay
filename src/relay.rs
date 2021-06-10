@@ -1,7 +1,9 @@
 use anyhow::{anyhow, Context, Result};
 use futures::{SinkExt, StreamExt};
 use kafka_settings::{producer, KafkaSettings};
-use polygon::ws::{Aggregate, Connection, PolygonAction, PolygonMessage, Quote, Trade};
+use polygon::ws::{
+    Aggregate, Connection, PolygonAction, PolygonMessage, PolygonStatus, Quote, Trade,
+};
 use rdkafka::producer::FutureRecord;
 use std::sync::mpsc::Receiver;
 use std::time::Duration;
@@ -32,10 +34,17 @@ pub async fn run(
             10_000, // Equal to 1/10 the max buffer size in rdkafka
             |message| async {
                 match message {
-                    Ok(message) => {
-                        let topic = get_topic(&message);
-                        let key = get_key(&message);
-                        let payload = serde_json::to_string(&message);
+                    Ok(polygon_message) => {
+                        if let PolygonMessage::Status { status, message } = &polygon_message {
+                            if let PolygonStatus::MaxConnections | PolygonStatus::ForceDisconnect =
+                                status
+                            {
+                                panic!("Disconnecting: {}", message)
+                            }
+                        }
+                        let topic = get_topic(&polygon_message);
+                        let key = get_key(&polygon_message);
+                        let payload = serde_json::to_string(&polygon_message);
                         match payload {
                             Ok(payload) => {
                                 debug!(
@@ -59,7 +68,7 @@ pub async fn run(
                             }
                             Err(e) => {
                                 sentry_anyhow::capture_anyhow(&e.into());
-                                error!("Failed to serialize payload: {:?}", &message)
+                                error!("Failed to serialize payload: {:?}", &polygon_message)
                             }
                         }
                     }
