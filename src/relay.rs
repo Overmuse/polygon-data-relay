@@ -47,10 +47,7 @@ pub async fn run(
                         let payload = serde_json::to_string(&polygon_message);
                         match payload {
                             Ok(payload) => {
-                                debug!(
-                                    "Message received: {}. Assigning key: {}, sending to topic: {}",
-                                    &payload, &key, &topic
-                                );
+                                debug!(?polygon_message, ?key, ?topic);
                                 let res = producer
                                     .send(
                                         FutureRecord::to(topic).key(key).payload(&payload),
@@ -60,15 +57,13 @@ pub async fn run(
                                 if let Err((e, msg)) = res {
                                     let e = e.into();
                                     sentry_anyhow::capture_anyhow(&e);
-                                    error!(
-                                        "Failed to send message to kafka. Message: {:?}\nError: {}",
-                                        msg, e
-                                    )
+                                    error!(?msg, %e)
                                 }
                             }
                             Err(e) => {
-                                sentry_anyhow::capture_anyhow(&e.into());
-                                error!("Failed to serialize payload: {:?}", &polygon_message)
+                                let e = e.into();
+                                sentry_anyhow::capture_anyhow(&e);
+                                error!(%e, ?polygon_message)
                             }
                         }
                     }
@@ -76,7 +71,7 @@ pub async fn run(
                         polygon::errors::Error::Serde { .. } => {
                             let e = e.into();
                             sentry_anyhow::capture_anyhow(&e);
-                            error!("Failed to reveive message from the WebSocket: {}", e)
+                            error!(%e)
                         }
                         _ => panic!("Failed to receive message from the WebSocket: {}", e),
                     },

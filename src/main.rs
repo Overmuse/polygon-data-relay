@@ -8,16 +8,15 @@ use sentry_anyhow::capture_anyhow;
 use std::sync::mpsc::channel;
 use std::thread;
 use tracing::{debug, info, subscriber::set_global_default};
-use tracing_bunyan_formatter::{BunyanFormattingLayer, JsonStorageLayer};
 use tracing_log::LogTracer;
-use tracing_subscriber::{layer::SubscriberExt, Registry};
+use tracing_subscriber::EnvFilter;
 
 fn main() -> Result<()> {
     let _ = dotenv();
-    let formatting_layer = BunyanFormattingLayer::new("polygon-data-relay".into(), std::io::stdout);
-    let subscriber = Registry::default()
-        .with(JsonStorageLayer)
-        .with(formatting_layer);
+    let subscriber = tracing_subscriber::fmt()
+        .json()
+        .with_env_filter(EnvFilter::from_default_env())
+        .finish();
     set_global_default(subscriber).expect("Failed to set subscriber");
     LogTracer::init().expect("Failed to set logger");
     let settings = Settings::new()?;
@@ -28,25 +27,25 @@ fn main() -> Result<()> {
             ..Default::default()
         },
     ));
-    info!("Starting polygon-data-relay");
+    info!("Starting");
 
     let mut data: Vec<&str> = vec![];
 
     if settings.polygon.quotes {
         data.push("Q");
-        debug!("Will subscribe to Quotes");
+        debug!(subscription = "Quotes", "Subscribing");
     }
     if settings.polygon.trades {
         data.push("T");
-        debug!("Will subscribe to Trades");
+        debug!(subscription = "Trades", "Subscribing");
     }
     if settings.polygon.second_aggregates {
         data.push("A");
-        debug!("Will subscribe to SecondAggregates");
+        debug!(subscription = "SecondAggregates", "Subscribing");
     }
     if settings.polygon.minute_aggregates {
         data.push("AM");
-        debug!("Will subscribe to MinuteAggregates");
+        debug!(subscription = "MinuteAggregates", "Subscribing");
     }
 
     let (tx, rx) = channel();
