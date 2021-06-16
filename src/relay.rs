@@ -21,7 +21,7 @@ pub async fn run(
         loop {
             let msg = rx.recv().expect("Failed to receive message");
             let msg_str = serde_json::to_string(&msg).expect("Failed to serialize command");
-            info!("Control message received: {}", &msg_str);
+            info!(%msg_str);
             sink.send(msg_str)
                 .await
                 .map_err(|_| anyhow!("Failed to send message to Sink"))
@@ -47,23 +47,23 @@ pub async fn run(
                         let payload = serde_json::to_string(&polygon_message);
                         match payload {
                             Ok(payload) => {
-                                debug!(?polygon_message, ?key, ?topic);
+                                debug!(%payload, %key, %topic);
                                 let res = producer
                                     .send(
                                         FutureRecord::to(topic).key(key).payload(&payload),
                                         Duration::from_secs(0),
                                     )
                                     .await;
-                                if let Err((e, msg)) = res {
+                                if let Err((e, _)) = res {
                                     let e = e.into();
                                     sentry_anyhow::capture_anyhow(&e);
-                                    error!(?msg, %e)
+                                    error!(%e, %payload)
                                 }
                             }
                             Err(e) => {
                                 let e = e.into();
                                 sentry_anyhow::capture_anyhow(&e);
-                                error!(%e, ?polygon_message)
+                                error!(%e)
                             }
                         }
                     }
