@@ -1,34 +1,15 @@
-use anyhow::{anyhow, Context, Result};
-use futures::{SinkExt, StreamExt};
+use anyhow::{Context, Result};
+use futures::StreamExt;
 use kafka_settings::{producer, KafkaSettings};
-use polygon::ws::{
-    Aggregate, Connection, PolygonAction, PolygonMessage, PolygonStatus, Quote, Trade,
-};
+use polygon::ws::{Aggregate, Connection, PolygonMessage, PolygonStatus, Quote, Trade};
 use rdkafka::producer::FutureRecord;
-use std::sync::mpsc::Receiver;
 use std::time::Duration;
-use tracing::{debug, error, info};
+use tracing::{debug, error};
 
-pub async fn run(
-    settings: &KafkaSettings,
-    connection: Connection<'_>,
-    rx: Receiver<PolygonAction>,
-) -> Result<()> {
+pub async fn run(settings: &KafkaSettings, connection: Connection<'_>) -> Result<()> {
     let producer = producer(settings)?;
     let ws = connection.connect().await.context("Failed to connect")?;
-    let (mut sink, stream) = ws.split::<String>();
-    tokio::spawn(async move {
-        loop {
-            let msg = rx.recv().expect("Failed to receive message");
-            let msg_str = serde_json::to_string(&msg).expect("Failed to serialize command");
-            info!(%msg_str);
-            sink.send(msg_str)
-                .await
-                .map_err(|_| anyhow!("Failed to send message to Sink"))
-                .unwrap();
-        }
-    });
-
+    let (_, stream) = ws.split::<String>();
     stream
         .for_each_concurrent(
             10_000, // Equal to 1/10 the max buffer size in rdkafka
