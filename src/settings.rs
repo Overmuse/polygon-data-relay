@@ -41,6 +41,7 @@ pub struct SentrySettings {
 pub struct Settings {
     pub server: WebServerSettings,
     pub kafka: KafkaSettings,
+    pub kafka_paper: Option<KafkaSettings>,
     pub polygon: PolygonSettings,
     pub sentry: SentrySettings,
 }

@@ -45,6 +45,7 @@ async fn main() -> Result<()> {
     }
 
     let kafka_settings = settings.kafka;
+    let kafka_paper_settings = settings.kafka_paper;
     let polygon_settings = settings.polygon;
 
     let half_owned: Vec<_> = polygon_settings
@@ -58,7 +59,7 @@ async fn main() -> Result<()> {
         &data,
         &half_owned,
     );
-    let res = run(&kafka_settings, connection).await;
+    let res = run(&kafka_settings, &kafka_paper_settings, connection).await;
     if let Err(e) = res {
         capture_anyhow(&e);
     }
