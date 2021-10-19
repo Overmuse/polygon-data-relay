@@ -6,8 +6,13 @@ use rdkafka::producer::FutureRecord;
 use std::time::Duration;
 use tracing::{debug, error};
 
-pub async fn run(settings: &KafkaSettings, connection: Connection<'_>) -> Result<()> {
-    let producer = producer(settings)?;
+pub async fn run(
+    settings: &KafkaSettings,
+    paper_settings: &Option<KafkaSettings>,
+    connection: Connection<'_>,
+) -> Result<()> {
+    let prod_producer = producer(settings)?;
+    let paper_producer = paper_settings.as_ref().map(|s| producer(s).ok()).flatten();
     let ws = connection.connect().await.context("Failed to connect")?;
     let (_, stream) = ws.split::<String>();
     stream
@@ -29,7 +34,7 @@ pub async fn run(settings: &KafkaSettings, connection: Connection<'_>) -> Result
                         match payload {
                             Ok(payload) => {
                                 debug!(%payload, %key, %topic);
-                                let res = producer
+                                let res = prod_producer
                                     .send(
                                         FutureRecord::to(topic).key(key).payload(&payload),
                                         Duration::from_secs(0),
@@ -39,6 +44,19 @@ pub async fn run(settings: &KafkaSettings, connection: Connection<'_>) -> Result
                                     let e = e.into();
                                     sentry_anyhow::capture_anyhow(&e);
                                     error!(%e, %payload)
+                                }
+                                if let Some(paper_producer) = paper_producer.as_ref() {
+                                    let res = paper_producer
+                                        .send(
+                                            FutureRecord::to(topic).key(key).payload(&payload),
+                                            Duration::from_secs(0),
+                                        )
+                                        .await;
+                                    if let Err((e, _)) = res {
+                                        let e = e.into();
+                                        sentry_anyhow::capture_anyhow(&e);
+                                        error!(%e, %payload)
+                                    }
                                 }
                             }
                             Err(e) => {
