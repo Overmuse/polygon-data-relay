@@ -4,7 +4,7 @@ WORKDIR app
 # it will be cached from the second build onwards
 # To ensure a reproducible build consider pinning 
 # the cargo-chef version with `--version X.X.X`
-RUN cargo install cargo-chef --version 0.1.19
+RUN cargo install cargo-chef --version 0.1.31
 
 COPY . .
 
@@ -12,7 +12,7 @@ RUN cargo chef prepare  --recipe-path recipe.json
 
 FROM rust:1.54 as cacher
 WORKDIR app
-RUN cargo install cargo-chef --version 0.1.19
+RUN cargo install cargo-chef --version 0.1.31
 COPY --from=planner /app/recipe.json recipe.json
 RUN --mount=type=ssh cargo chef cook --release --recipe-path recipe.json
 
